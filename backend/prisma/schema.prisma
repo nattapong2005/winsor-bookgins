@@ -1,0 +1,55 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  TECHNICIAN
+  CUSTOMER
+  COORDINATOR
+}
+
+model User {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  username  String?  @unique
+  password  String
+  full_name String?
+  phone     String?  @unique
+  email     String?  @unique
+  address   String?
+  role      Role     @default(CUSTOMER)
+  createdAt DateTime @default(now())
+  bookings  Booking[]
+  assignedBookings Booking[] @relation("TechnicianAssignments")
+}
+
+model Booking {
+  id             String   @id @default(auto()) @map("_id") @db.ObjectId
+  customer_name  String
+  phone          String
+  service_type   String
+  booking_date   DateTime
+  sub_district   String?
+  district       String?
+  province       String?
+  postcode       String?
+  address_detail String?
+  status         String   @default("รอยืนยัน")
+  createdAt      DateTime @default(now())
+  image_url      String?
+  notes          String?
+  
+  customerId     String?  @db.ObjectId
+  customer       User?    @relation(fields: [customerId], references: [id])
+
+  technicianId   String?  @db.ObjectId
+  technician     User?    @relation("TechnicianAssignments", fields: [technicianId], references: [id])
+}
