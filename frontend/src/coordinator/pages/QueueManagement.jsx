@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { API_URL } from '../../config/api';
+import { showAlert } from '../../components/Alert';
 
 const QueueManagement = () => {
     const [bookings, setBookings] = useState([]);
@@ -17,7 +18,7 @@ const QueueManagement = () => {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             if (res.ok) setBookings(await res.json());
-        } catch (err) { console.error(err); } 
+        } catch (err) { console.error(err); }
         finally { setLoading(false); }
     };
 
@@ -52,9 +53,9 @@ const QueueManagement = () => {
                 setBookings(bookings.map(b => b.id === id ? { ...b, ...updated } : b));
                 if (selectedBooking?.id === id) setSelectedBooking({ ...selectedBooking, ...updated });
             } else {
-                alert('อัพเดทไม่สำเร็จ');
+                showAlert('error', 'อัพเดทไม่สำเร็จ');
             }
-        } catch (err) { alert('เกิดข้อผิดพลาด'); }
+        } catch (err) { showAlert('error', 'เกิดข้อผิดพลาด'); }
     };
 
     const getStatusColor = (status) => {
@@ -80,7 +81,7 @@ const QueueManagement = () => {
         <div className="space-y-6 animate-fade-in-up">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <h1 className="text-2xl font-bold text-slate-800">จัดการคิวและมอบหมายงาน</h1>
-                
+
                 <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
                     <div className="relative flex-grow md:flex-grow-0">
                         <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">🔍</span>
@@ -92,7 +93,7 @@ const QueueManagement = () => {
                             onChange={e => setSearchTerm(e.target.value)}
                         />
                     </div>
-                    <select 
+                    <select
                         className="border border-slate-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-orange-500 outline-none"
                         value={filterStatus}
                         onChange={e => setFilterStatus(e.target.value)}
@@ -128,7 +129,7 @@ const QueueManagement = () => {
                                 <tr key={booking.id} className="hover:bg-slate-50/50 transition-colors">
                                     <td className="px-6 py-4">
                                         <div className="text-sm font-medium text-slate-700">{new Date(booking.booking_date).toLocaleDateString('th-TH')}</div>
-                                        <div className="text-xs text-slate-400">{new Date(booking.booking_date).toLocaleTimeString('th-TH', {hour: '2-digit', minute:'2-digit'})} น.</div>
+                                        <div className="text-xs text-slate-400">{new Date(booking.booking_date).toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' })} น.</div>
                                     </td>
                                     <td className="px-6 py-4">
                                         <div className="font-semibold text-slate-800">{booking.customer_name}</div>
@@ -141,6 +142,7 @@ const QueueManagement = () => {
                                         {booking.technician ? (
                                             <span className="flex items-center gap-1 text-slate-700">
                                                 👷 {booking.technician.full_name}
+                                                {booking.technician.expertise && <span className="text-[10px] text-slate-500 ml-1">[{booking.technician.expertise}]</span>}
                                             </span>
                                         ) : <span className="text-slate-400 italic">ยังไม่ระบุ</span>}
                                     </td>
@@ -150,7 +152,7 @@ const QueueManagement = () => {
                                         </span>
                                     </td>
                                     <td className="px-6 py-4 text-right">
-                                        <button 
+                                        <button
                                             onClick={() => setSelectedBooking(booking)}
                                             className="bg-white border border-slate-200 text-slate-600 hover:text-orange-600 hover:border-orange-200 px-3 py-1.5 rounded-lg text-sm font-medium transition-all shadow-sm"
                                         >
@@ -164,8 +166,8 @@ const QueueManagement = () => {
                 </div>
             </div>
 
-             {/* Detail Modal */}
-             {selectedBooking && (
+            {/* Detail Modal */}
+            {selectedBooking && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm animate-in fade-in">
                     <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col animate-in zoom-in-95">
                         <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
@@ -175,7 +177,7 @@ const QueueManagement = () => {
                             </div>
                             <button onClick={() => setSelectedBooking(null)} className="text-2xl text-slate-400 hover:text-slate-600">&times;</button>
                         </div>
-                        
+
                         <div className="p-8 overflow-y-auto flex-1 space-y-8">
                             <div className="bg-orange-50/50 p-6 rounded-xl border border-orange-100 space-y-4">
                                 <h3 className="text-sm font-bold text-orange-800 uppercase tracking-widest flex items-center gap-2">
@@ -184,7 +186,7 @@ const QueueManagement = () => {
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <div>
                                         <label className="text-xs font-bold text-slate-500 uppercase mb-1.5 block">อัปเดตสถานะ</label>
-                                        <select 
+                                        <select
                                             className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2.5 focus:ring-2 focus:ring-orange-500 outline-none bg-white font-medium shadow-sm"
                                             value={selectedBooking.status}
                                             onChange={(e) => updateBooking(selectedBooking.id, { status: e.target.value })}
@@ -198,20 +200,20 @@ const QueueManagement = () => {
                                     </div>
                                     <div>
                                         <label className="text-xs font-bold text-slate-500 uppercase mb-1.5 block">มอบหมายช่าง</label>
-                                        <select 
+                                        <select
                                             className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2.5 focus:ring-2 focus:ring-orange-500 outline-none bg-white font-medium shadow-sm"
                                             value={selectedBooking.technicianId || ''}
                                             onChange={(e) => updateBooking(selectedBooking.id, { technicianId: e.target.value || null })}
                                         >
                                             <option value="">-- เลือกช่าง --</option>
                                             {technicians.map(t => (
-                                                <option key={t.id} value={t.id}>{t.full_name || t.username} ({t.phone})</option>
+                                                <option key={t.id} value={t.id}>{t.full_name || t.username} {t.expertise ? `[${t.expertise}]` : ''} ({t.phone})</option>
                                             ))}
                                         </select>
                                     </div>
                                 </div>
                             </div>
-                            
+
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                                 <div className="space-y-4">
                                     <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest border-b border-slate-50 pb-2">ข้อมูลลูกค้า</h3>
@@ -223,10 +225,10 @@ const QueueManagement = () => {
                                 </div>
 
                                 <div className="space-y-4">
-                                     <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest border-b border-slate-50 pb-2">นัดหมาย</h3>
-                                     <div className="space-y-2 text-sm">
-                                        <p><span className="text-slate-500 block text-xs mb-0.5">วันที่</span> <span className="font-medium text-slate-800">{new Date(selectedBooking.booking_date).toLocaleDateString('th-TH', {dateStyle: 'long'})}</span></p>
-                                        <p><span className="text-slate-500 block text-xs mb-0.5">เวลา</span> <span className="font-medium text-slate-800">{new Date(selectedBooking.booking_date).toLocaleTimeString('th-TH', {hour: '2-digit', minute:'2-digit'})} น.</span></p>
+                                    <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest border-b border-slate-50 pb-2">นัดหมาย</h3>
+                                    <div className="space-y-2 text-sm">
+                                        <p><span className="text-slate-500 block text-xs mb-0.5">วันที่</span> <span className="font-medium text-slate-800">{new Date(selectedBooking.booking_date).toLocaleDateString('th-TH', { dateStyle: 'long' })}</span></p>
+                                        <p><span className="text-slate-500 block text-xs mb-0.5">เวลา</span> <span className="font-medium text-slate-800">{new Date(selectedBooking.booking_date).toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' })} น.</span></p>
                                     </div>
                                 </div>
                             </div>
@@ -248,7 +250,7 @@ const QueueManagement = () => {
                                 </div>
                             </div>
 
-                             {selectedBooking.image_url && (
+                            {selectedBooking.image_url && (
                                 <div className="space-y-4">
                                     <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest border-b border-slate-50 pb-2">รูปภาพหน้างาน</h3>
                                     <div className="rounded-xl overflow-hidden border border-slate-100 shadow-sm bg-slate-100">
@@ -273,7 +275,7 @@ const QueueManagement = () => {
                         </div>
                     </div>
                 </div>
-             )}
+            )}
         </div>
     );
 };

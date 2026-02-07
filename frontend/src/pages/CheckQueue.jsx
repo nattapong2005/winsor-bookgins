@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { showAlert } from "../components/Alert";
 // import "./CheckQueue.css"; // Removed
 
 function CheckQueue({ apiUrl }) {
@@ -62,10 +63,10 @@ function CheckQueue({ apiUrl }) {
         // Update local state to reflect change immediately
         setQueues(queues.map(q => q.id === id ? { ...q, status: newStatus } : q));
       } else {
-        alert("อัปเดตสถานะไม่สำเร็จ");
+        showAlert("error", "อัปเดตสถานะไม่สำเร็จ");
       }
     } catch (err) {
-      alert("เกิดข้อผิดพลาดในการเชื่อมต่อ");
+      showAlert("error", "เกิดข้อผิดพลาดในการเชื่อมต่อ");
     } finally {
       setUpdatingId(null);
     }

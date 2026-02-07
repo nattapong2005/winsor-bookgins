@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { showAlert } from "../components/Alert";
 // import "./Auth.css"; // Removed
 
 function Login({ onLoginSuccess, apiUrl }) {
@@ -28,7 +29,7 @@ function Login({ onLoginSuccess, apiUrl }) {
           localStorage.setItem("fullName", data.user.full_name || data.user.name);
 
           onLoginSuccess(data.user); // Pass user data back to App
-          
+
           if (data.user.role === "COORDINATOR") {
             navigate("/coordinator/dashboard");
           } else if (data.user.role === "TECHNICIAN") {
@@ -36,8 +37,8 @@ function Login({ onLoginSuccess, apiUrl }) {
           } else {
             navigate("/admin/dashboard");
           }
-          
-          alert(`ยินดีต้อนรับ ${data.user.full_name || data.user.name} (${data.user.role})`);
+
+          showAlert("success", `ยินดีต้อนรับ ${data.user.full_name || data.user.name} (${data.user.role})`);
         } else if (data.user.role === "USER" || data.user.role === "CUSTOMER") {
           // User Logic
           localStorage.setItem("userData", JSON.stringify(data.user)); // Ensure userData is stored if needed by logic
@@ -46,13 +47,13 @@ function Login({ onLoginSuccess, apiUrl }) {
           navigate("/");
         } else {
           // Fallback
-          alert("Role ไม่ถูกต้อง หรือไม่มีสิทธิ์เข้าใช้งาน");
+          showAlert("error", "Role ไม่ถูกต้อง หรือไม่มีสิทธิ์เข้าใช้งาน");
         }
       } else {
-        alert(data.message || "เข้าสู่ระบบไม่สำเร็จ");
+        showAlert("error", data.message || "เข้าสู่ระบบไม่สำเร็จ");
       }
     } catch (err) {
-      alert("ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้");
+      showAlert("error", "ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้");
     }
   };
 

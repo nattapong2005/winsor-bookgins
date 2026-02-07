@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { showAlert } from "./Alert";
 // import "./BookingPage.css"; // Removed
 
 // ✅ รับ apiUrl มาจาก props (ที่ส่งมาจาก App.js)
@@ -77,7 +78,7 @@ const BookingPage = ({ apiUrl }) => {
   };
 
   const handleSearch = () => {
-    if (!searchPhone) return alert("กรุณากรอกเบอร์โทรศัพท์");
+    if (!searchPhone) return showAlert("warning", "กรุณากรอกเบอร์โทรศัพท์");
     const filtered = allBookings.filter(item => item.phone === searchPhone);
     setSearchResults(filtered);
     setIsSearching(true);
@@ -85,7 +86,7 @@ const BookingPage = ({ apiUrl }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!form.time) return alert("กรุณาเลือกช่วงเวลาที่ต้องการ");
+    if (!form.time) return showAlert("warning", "กรุณาเลือกช่วงเวลาที่ต้องการ");
 
     try {
       const token = localStorage.getItem('token');
@@ -129,11 +130,11 @@ const BookingPage = ({ apiUrl }) => {
         setPreviewUrl(null);
       } else {
         const errorData = await response.json();
-        alert(`❌ จองไม่สำเร็จ: ${errorData.message || "มีข้อผิดพลาดเกิดขึ้น"}`);
+        showAlert("error", `❌ จองไม่สำเร็จ: ${errorData.message || "มีข้อผิดพลาดเกิดขึ้น"}`);
       }
     } catch (error) {
       console.error("Submit error:", error);
-      alert("❌ ไม่สามารถติดต่อเซิร์ฟเวอร์ได้ กรุณาตรวจสอบอินเทอร์เน็ต");
+      showAlert("error", "❌ ไม่สามารถติดต่อเซิร์ฟเวอร์ได้ กรุณาตรวจสอบอินเทอร์เน็ต");
     }
   };
 

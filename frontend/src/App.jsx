@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route, useNavigate, useLocation } from "react-router-dom";
+import { showConfirm } from "./components/Alert";
 // import "./App.css"; // Removed custom CSS
 import BookingPage from "./components/BookingPage";
 import CheckQueue from "./pages/CheckQueue";
@@ -76,13 +77,15 @@ function App() {
   });
 
   const handleLogout = () => {
-    if (window.confirm("ยืนยันการออกจากระบบ?")) {
-      localStorage.clear();
-      setIsLoggedIn(false);
-      setIsUserLoggedIn(false);
-      setUserData(null);
-      window.location.href = "/";
-    }
+    showConfirm("ยืนยันการออกจากระบบ", "ยืนยันการออกจากระบบ?").then((result) => {
+      if (result.isConfirmed) {
+        localStorage.clear();
+        setIsLoggedIn(false);
+        setIsUserLoggedIn(false);
+        setUserData(null);
+        window.location.href = "/";
+      }
+    });
   };
 
   const handleLoginSuccess = (user) => {
@@ -118,8 +121,8 @@ function App() {
 
           {/* Technician Routes */}
           <Route path="/technician" element={isLoggedIn ? <TechnicianLayout handleLogout={handleLogout} /> : <Navigate to="/login" />}>
-             <Route index element={<Navigate to="/technician/dashboard" replace />} />
-             <Route path="dashboard" element={<TechnicianDashboard />} />
+            <Route index element={<Navigate to="/technician/dashboard" replace />} />
+            <Route path="dashboard" element={<TechnicianDashboard />} />
           </Route>
 
           {/* User Routes - Wrapped in UserLayout */}

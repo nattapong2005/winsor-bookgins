@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { showAlert } from "../components/Alert";
 
 function Home({ apiUrl }) {
     const navigate = useNavigate();
@@ -9,7 +10,7 @@ function Home({ apiUrl }) {
 
     const handleSearch = async (e) => {
         if (e) e.preventDefault();
-        if (!searchPhone) return alert("กรุณากรอกเบอร์โทรศัพท์");
+        if (!searchPhone) return showAlert("warning", "กรุณากรอกเบอร์โทรศัพท์");
         setIsSearching(true);
         try {
             const res = await fetch(`${apiUrl}/api/bookings/search/${searchPhone}`);
@@ -27,7 +28,7 @@ function Home({ apiUrl }) {
 
             setSearchResult(mappedData);
         } catch (err) {
-            alert("ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้");
+            showAlert("error", "ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้");
         } finally {
             setIsSearching(false);
         }

@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { showAlert } from "../components/Alert";
 // import "./Register.css"; // Removed
 
 function Register({ apiUrl }) {
@@ -19,7 +20,7 @@ function Register({ apiUrl }) {
   const handleRegister = async (e) => {
     e.preventDefault();
     if (formData.password !== formData.confirmPassword) {
-      alert("รหัสผ่านไม่ตรงกัน");
+      showAlert("warning", "รหัสผ่านไม่ตรงกัน");
       return;
     }
 
@@ -38,13 +39,13 @@ function Register({ apiUrl }) {
 
       const data = await res.json();
       if (res.ok) {
-        alert("ลงทะเบียนสำเร็จ! กรุณาเข้าสู่ระบบ");
+        showAlert("success", "ลงทะเบียนสำเร็จ! กรุณาเข้าสู่ระบบ");
         navigate("/login");
       } else {
-        alert(data.message || "Registration failed");
+        showAlert("error", data.message || "Registration failed");
       }
     } catch (err) {
-      alert("Error connecting to server");
+      showAlert("error", "Error connecting to server");
     }
   };
 

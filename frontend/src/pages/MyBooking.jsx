@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { showAlert, showConfirm } from "../components/Alert";
 
 function MyBooking({ user, apiUrl }) {
     const navigate = useNavigate();
@@ -39,7 +40,8 @@ function MyBooking({ user, apiUrl }) {
     };
 
     const handleCancelBooking = async (bookingId) => {
-        if (!window.confirm("คุณแน่ใจหรือไม่ที่จะยกเลิกการจองนี้?")) return;
+        const confirm = await showConfirm("ยืนยันการยกเลิก", "คุณแน่ใจหรือไม่ที่จะยกเลิกการจองนี้?");
+        if (!confirm.isConfirmed) return;
         try {
             const token = localStorage.getItem('token');
             const res = await fetch(`${apiUrl}/api/bookings/${bookingId}`, {
@@ -52,24 +54,26 @@ function MyBooking({ user, apiUrl }) {
             });
 
             if (res.ok) {
-                alert("ยกเลิกการจองเรียบร้อยแล้ว");
+                showAlert("success", "ยกเลิกการจองเรียบร้อยแล้ว");
                 fetchMyBookings();
             } else {
                 const err = await res.json();
-                alert(err.message || "ไม่สามารถยกเลิกได้");
+                showAlert("error", err.message || "ไม่สามารถยกเลิกได้");
             }
         } catch (err) {
-            alert("Error connecting to server");
+            showAlert("error", "Error connecting to server");
         }
     };
 
 
 
     const handleLogout = () => {
-        if (window.confirm("ยืนยันการออกจากระบบ?")) {
-            localStorage.clear();
-            window.location.href = "/";
-        }
+        showConfirm("ยืนยันการออกจากระบบ", "คุณต้องการออกจากระบบใช่หรือไม่?").then((result) => {
+            if (result.isConfirmed) {
+                localStorage.clear();
+                window.location.href = "/";
+            }
+        });
     };
 
     return (

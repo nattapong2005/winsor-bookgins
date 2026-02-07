@@ -26,6 +26,7 @@ model User {
   email     String?  @unique
   address   String?
   role      Role     @default(CUSTOMER)
+  expertise String?
   createdAt DateTime @default(now())
   bookings  Booking[]
   assignedBookings Booking[] @relation("TechnicianAssignments")

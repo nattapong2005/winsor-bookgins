@@ -3,7 +3,7 @@ import bcrypt from 'bcryptjs';
 
 // Create User (Admin only)
 export const createUser = async (req, res) => {
-    const { username, password, full_name, phone, email, role, address } = req.body; // Aliasing name to full_name
+    const { username, password, full_name, phone, email, role, address, expertise } = req.body; // Aliasing name to full_name
 
     try {
         if (username) {
@@ -24,7 +24,10 @@ export const createUser = async (req, res) => {
                 phone,
                 email,
                 address,
-                role: role || 'CUSTOMER' // Use lowercase role
+                email,
+                address,
+                role: role || 'CUSTOMER', // Use lowercase role
+                expertise
             }
         });
 
@@ -51,7 +54,8 @@ export const getUsers = async (req, res) => {
         const where = role ? { role: role.toUpperCase() } : {}; // Match Prisma enum (ADMIN, TECHNICIAN, etc.)
         const users = await prisma.user.findMany({
             where,
-            select: { id: true, username: true, full_name: true, role: true, email: true, phone: true } // Use full_name
+            where,
+            select: { id: true, username: true, full_name: true, role: true, email: true, phone: true, expertise: true } // Use full_name
         });
         res.json(users);
     } catch (error) {
@@ -61,7 +65,7 @@ export const getUsers = async (req, res) => {
 
 export const updateUser = async (req, res) => {
     const { id } = req.params;
-    const { full_name, phone, email, password, address, role } = req.body; // Aliasing name to full_name
+    const { full_name, phone, email, password, address, role, expertise } = req.body; // Aliasing name to full_name
 
     // Security: only admin or self can update
     // NOTE: role in JWT should be lowercase
@@ -75,7 +79,9 @@ export const updateUser = async (req, res) => {
         if (phone) data.phone = phone;
         if (email) data.email = email;
         if (address) data.address = address;
+        if (address) data.address = address;
         if (role) data.role = role;
+        if (expertise !== undefined) data.expertise = expertise;
 
         if (password) {
             data.password = await bcrypt.hash(password, 10);

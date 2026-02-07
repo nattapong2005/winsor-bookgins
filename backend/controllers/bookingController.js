@@ -82,7 +82,7 @@ export const getBookings = async (req, res) => {
             orderBy: { booking_date: 'asc' },
             include: {
                 customer: { select: { username: true, full_name: true, phone: true } },
-                technician: { select: { username: true, full_name: true, phone: true } }
+                technician: { select: { username: true, full_name: true, phone: true, expertise: true } }
             }
         });
 

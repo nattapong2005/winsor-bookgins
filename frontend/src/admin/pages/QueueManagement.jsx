@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { API_URL } from '../../config/api';
+import { showAlert, showConfirm } from '../../components/Alert';
 
 const QueueManagement = () => {
     const [bookings, setBookings] = useState([]);
@@ -69,15 +70,16 @@ const QueueManagement = () => {
                     setSelectedBooking({ ...selectedBooking, ...updatedBooking });
                 }
             } else {
-                alert('อัพเดทข้อมูลไม่สำเร็จ');
+                showAlert('error', 'อัพเดทข้อมูลไม่สำเร็จ');
             }
         } catch (err) {
-            alert('เกิดข้อผิดพลาด');
+            showAlert('error', 'เกิดข้อผิดพลาด');
         }
     };
 
     const deleteBooking = async (id) => {
-        if (!window.confirm('ยืนยันการลบข้อมูลการจองนี้? การกระทำนี้ไม่สามารถย้อนกลับได้')) return;
+        const confirm = await showConfirm('ยืนยันการลบ', 'ยืนยันการลบข้อมูลการจองนี้? การกระทำนี้ไม่สามารถย้อนกลับได้');
+        if (!confirm.isConfirmed) return;
 
         try {
             const token = localStorage.getItem('token');
@@ -92,10 +94,10 @@ const QueueManagement = () => {
                 setBookings(bookings.filter(b => b.id !== id));
                 setSelectedBooking(null);
             } else {
-                alert('ลบไม่สำเร็จ');
+                showAlert('error', 'ลบไม่สำเร็จ');
             }
         } catch (err) {
-            alert('เกิดข้อผิดพลาดในการลบ');
+            showAlert('error', 'เกิดข้อผิดพลาดในการลบ');
         }
     };
 
@@ -205,6 +207,7 @@ const QueueManagement = () => {
                                             {booking.technician ? (
                                                 <div className="flex items-center gap-1">
                                                     <span>👷</span> {booking.technician.full_name || booking.technician.username}
+                                                    {booking.technician.expertise && <span className="text-[10px] text-slate-500 ml-1">[{booking.technician.expertise}]</span>}
                                                 </div>
                                             ) : (
                                                 <span className="text-slate-400 italic text-xs">ยังไม่ระบุ</span>
@@ -242,153 +245,155 @@ const QueueManagement = () => {
             </div>
 
             {/* Detail Modal */}
-            {selectedBooking && (
-                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
-                    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col animate-scaleUp">
-                        <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
-                            <div>
-                                <h2 className="text-xl font-bold text-slate-800">รายละเอียดและจัดการงาน</h2>
-                                <p className="text-xs text-slate-500 uppercase font-semibold mt-1">ID: {selectedBooking.id}</p>
+            {
+                selectedBooking && (
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
+                        <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col animate-scaleUp">
+                            <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+                                <div>
+                                    <h2 className="text-xl font-bold text-slate-800">รายละเอียดและจัดการงาน</h2>
+                                    <p className="text-xs text-slate-500 uppercase font-semibold mt-1">ID: {selectedBooking.id}</p>
+                                </div>
+                                <button
+                                    onClick={() => setSelectedBooking(null)}
+                                    className="text-2xl text-slate-400 hover:text-slate-600 transition-colors"
+                                >
+                                    &times;
+                                </button>
                             </div>
-                            <button
-                                onClick={() => setSelectedBooking(null)}
-                                className="text-2xl text-slate-400 hover:text-slate-600 transition-colors"
-                            >
-                                &times;
-                            </button>
-                        </div>
 
-                        <div className="p-8 overflow-y-auto flex-1 space-y-8">
-                            {/* Management Section (Assign & Status) */}
-                            <div className="bg-blue-50/50 p-6 rounded-xl border border-blue-100 space-y-4">
-                                <h3 className="text-sm font-bold text-blue-800 uppercase tracking-widest flex items-center gap-2">
-                                    ⚙️ จัดการงาน
-                                </h3>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    <div>
-                                        <label className="text-xs font-bold text-slate-500 uppercase mb-1.5 block">สถานะงาน</label>
-                                        <select
-                                            className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2.5 focus:ring-2 focus:ring-blue-500 outline-none bg-white font-medium shadow-sm"
-                                            value={selectedBooking.status}
-                                            onChange={(e) => updateBooking(selectedBooking.id, { status: e.target.value })}
-                                        >
-                                            <option value="รอยืนยัน">รอยืนยัน</option>
-                                            <option value="ยืนยันแล้ว">ยืนยันแล้ว</option>
-                                            <option value="กำลังดำเนินการ">กำลังดำเนินการ</option>
-                                            <option value="เสร็จสิ้น">เสร็จสิ้น</option>
-                                            <option value="ยกเลิก">ยกเลิก</option>
-                                        </select>
-                                    </div>
-                                    <div>
-                                        <label className="text-xs font-bold text-slate-500 uppercase mb-1.5 block">มอบหมายช่าง</label>
-                                        <select
-                                            className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2.5 focus:ring-2 focus:ring-blue-500 outline-none bg-white font-medium shadow-sm"
-                                            value={selectedBooking.technicianId || ""}
-                                            onChange={(e) => updateBooking(selectedBooking.id, { technicianId: e.target.value || null })}
-                                        >
-                                            <option value="">-- เลือกช่าง --</option>
-                                            {technicians.map(tech => (
-                                                <option key={tech.id} value={tech.id}>
-                                                    {tech.full_name || tech.username} {tech.phone ? `(${tech.phone})` : ''}
-                                                </option>
-                                            ))}
-                                        </select>
+                            <div className="p-8 overflow-y-auto flex-1 space-y-8">
+                                {/* Management Section (Assign & Status) */}
+                                <div className="bg-blue-50/50 p-6 rounded-xl border border-blue-100 space-y-4">
+                                    <h3 className="text-sm font-bold text-blue-800 uppercase tracking-widest flex items-center gap-2">
+                                        ⚙️ จัดการงาน
+                                    </h3>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        <div>
+                                            <label className="text-xs font-bold text-slate-500 uppercase mb-1.5 block">สถานะงาน</label>
+                                            <select
+                                                className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2.5 focus:ring-2 focus:ring-blue-500 outline-none bg-white font-medium shadow-sm"
+                                                value={selectedBooking.status}
+                                                onChange={(e) => updateBooking(selectedBooking.id, { status: e.target.value })}
+                                            >
+                                                <option value="รอยืนยัน">รอยืนยัน</option>
+                                                <option value="ยืนยันแล้ว">ยืนยันแล้ว</option>
+                                                <option value="กำลังดำเนินการ">กำลังดำเนินการ</option>
+                                                <option value="เสร็จสิ้น">เสร็จสิ้น</option>
+                                                <option value="ยกเลิก">ยกเลิก</option>
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label className="text-xs font-bold text-slate-500 uppercase mb-1.5 block">มอบหมายช่าง</label>
+                                            <select
+                                                className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2.5 focus:ring-2 focus:ring-blue-500 outline-none bg-white font-medium shadow-sm"
+                                                value={selectedBooking.technicianId || ""}
+                                                onChange={(e) => updateBooking(selectedBooking.id, { technicianId: e.target.value || null })}
+                                            >
+                                                <option value="">-- เลือกช่าง --</option>
+                                                {technicians.map(tech => (
+                                                    <option key={tech.id} value={tech.id}>
+                                                        {tech.full_name || tech.username} {tech.expertise ? `[${tech.expertise}]` : ''} {tech.phone ? `(${tech.phone})` : ''}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
 
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                                {/* Customer Info */}
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                    {/* Customer Info */}
+                                    <div className="space-y-4">
+                                        <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest border-b border-slate-50 pb-2">ข้อมูลลูกค้า</h3>
+                                        <div className="space-y-3">
+                                            <div>
+                                                <label className="text-[10px] text-slate-400 font-bold uppercase">ชื่อลูกค้า</label>
+                                                <p className="text-slate-800 font-medium">{selectedBooking.customer_name}</p>
+                                            </div>
+                                            <div>
+                                                <label className="text-[10px] text-slate-400 font-bold uppercase">เบอร์โทรศัพท์</label>
+                                                <p className="text-slate-800 font-medium">{selectedBooking.phone}</p>
+                                            </div>
+                                            <div>
+                                                <label className="text-[10px] text-slate-400 font-bold uppercase">ประเภทบริการ</label>
+                                                <p className="text-blue-600 font-bold">{selectedBooking.service_type}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Booking Details */}
+                                    <div className="space-y-4">
+                                        <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest border-b border-slate-50 pb-2">นัดหมาย</h3>
+                                        <div className="space-y-3">
+                                            <div>
+                                                <label className="text-[10px] text-slate-400 font-bold uppercase">วันที่นัดหมาย</label>
+                                                <p className="text-slate-800 font-medium">
+                                                    {new Date(selectedBooking.booking_date).toLocaleDateString('th-TH', { dateStyle: 'long' })}
+                                                </p>
+                                            </div>
+                                            <div>
+                                                <label className="text-[10px] text-slate-400 font-bold uppercase">เวลา</label>
+                                                <p className="text-slate-800 font-medium">
+                                                    {new Date(selectedBooking.booking_date).toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' })} น.
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Address Detail */}
                                 <div className="space-y-4">
-                                    <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest border-b border-slate-50 pb-2">ข้อมูลลูกค้า</h3>
-                                    <div className="space-y-3">
-                                        <div>
-                                            <label className="text-[10px] text-slate-400 font-bold uppercase">ชื่อลูกค้า</label>
-                                            <p className="text-slate-800 font-medium">{selectedBooking.customer_name}</p>
-                                        </div>
-                                        <div>
-                                            <label className="text-[10px] text-slate-400 font-bold uppercase">เบอร์โทรศัพท์</label>
-                                            <p className="text-slate-800 font-medium">{selectedBooking.phone}</p>
-                                        </div>
-                                        <div>
-                                            <label className="text-[10px] text-slate-400 font-bold uppercase">ประเภทบริการ</label>
-                                            <p className="text-blue-600 font-bold">{selectedBooking.service_type}</p>
-                                        </div>
+                                    <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest border-b border-slate-50 pb-2">ที่อยู่ / รายละเอียดเพิ่มเติม</h3>
+                                    <div className="p-4 bg-slate-50 rounded-xl border border-slate-100">
+                                        <p className="text-slate-700 text-sm leading-relaxed whitespace-pre-line">
+                                            {selectedBooking.address_detail || 'ไม่ได้ระบุที่อยู่ละเอียด'}
+                                            <br />
+                                            {`${selectedBooking.sub_district || ''} ${selectedBooking.district || ''} ${selectedBooking.province || ''} ${selectedBooking.postcode || ''}`.trim()}
+                                        </p>
+                                        {selectedBooking.notes && (
+                                            <div className="mt-4 pt-4 border-t border-slate-200">
+                                                <label className="text-[10px] text-slate-400 font-bold uppercase">หมายเหตุ</label>
+                                                <p className="text-slate-600 text-sm italic">"{selectedBooking.notes}"</p>
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
 
-                                {/* Booking Details */}
-                                <div className="space-y-4">
-                                    <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest border-b border-slate-50 pb-2">นัดหมาย</h3>
-                                    <div className="space-y-3">
-                                        <div>
-                                            <label className="text-[10px] text-slate-400 font-bold uppercase">วันที่นัดหมาย</label>
-                                            <p className="text-slate-800 font-medium">
-                                                {new Date(selectedBooking.booking_date).toLocaleDateString('th-TH', { dateStyle: 'long' })}
-                                            </p>
-                                        </div>
-                                        <div>
-                                            <label className="text-[10px] text-slate-400 font-bold uppercase">เวลา</label>
-                                            <p className="text-slate-800 font-medium">
-                                                {new Date(selectedBooking.booking_date).toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' })} น.
-                                            </p>
+                                {/* Image */}
+                                {selectedBooking.image_url && (
+                                    <div className="space-y-4">
+                                        <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest border-b border-slate-50 pb-2">รูปภาพประกอบ</h3>
+                                        <div className="rounded-xl overflow-hidden border border-slate-100 shadow-sm">
+                                            <img
+                                                src={selectedBooking.image_url}
+                                                alt="หลักฐานหรือหน้างาน"
+                                                className="w-full object-cover max-h-64"
+                                                onError={(e) => { e.target.src = 'https://via.placeholder.com/400x300?text=Error+Loading+Image'; }}
+                                            />
                                         </div>
                                     </div>
-                                </div>
+                                )}
                             </div>
 
-                            {/* Address Detail */}
-                            <div className="space-y-4">
-                                <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest border-b border-slate-50 pb-2">ที่อยู่ / รายละเอียดเพิ่มเติม</h3>
-                                <div className="p-4 bg-slate-50 rounded-xl border border-slate-100">
-                                    <p className="text-slate-700 text-sm leading-relaxed whitespace-pre-line">
-                                        {selectedBooking.address_detail || 'ไม่ได้ระบุที่อยู่ละเอียด'}
-                                        <br />
-                                        {`${selectedBooking.sub_district || ''} ${selectedBooking.district || ''} ${selectedBooking.province || ''} ${selectedBooking.postcode || ''}`.trim()}
-                                    </p>
-                                    {selectedBooking.notes && (
-                                        <div className="mt-4 pt-4 border-t border-slate-200">
-                                            <label className="text-[10px] text-slate-400 font-bold uppercase">หมายเหตุ</label>
-                                            <p className="text-slate-600 text-sm italic">"{selectedBooking.notes}"</p>
-                                        </div>
-                                    )}
-                                </div>
+                            <div className="p-6 border-t border-slate-100 bg-slate-50/50 flex justify-between gap-4">
+                                <button
+                                    onClick={() => deleteBooking(selectedBooking.id)}
+                                    className="px-4 py-2 text-red-600 font-semibold text-sm hover:bg-red-50 rounded-lg transition-colors"
+                                >
+                                    ลบการจองนี้
+                                </button>
+                                <button
+                                    onClick={() => setSelectedBooking(null)}
+                                    className="px-6 py-2 bg-slate-800 text-white font-semibold text-sm rounded-lg hover:bg-slate-700 transition-all shadow-md"
+                                >
+                                    ปิดหน้าต่าง
+                                </button>
                             </div>
-
-                            {/* Image */}
-                            {selectedBooking.image_url && (
-                                <div className="space-y-4">
-                                    <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest border-b border-slate-50 pb-2">รูปภาพประกอบ</h3>
-                                    <div className="rounded-xl overflow-hidden border border-slate-100 shadow-sm">
-                                        <img
-                                            src={selectedBooking.image_url}
-                                            alt="หลักฐานหรือหน้างาน"
-                                            className="w-full object-cover max-h-64"
-                                            onError={(e) => { e.target.src = 'https://via.placeholder.com/400x300?text=Error+Loading+Image'; }}
-                                        />
-                                    </div>
-                                </div>
-                            )}
-                        </div>
-
-                        <div className="p-6 border-t border-slate-100 bg-slate-50/50 flex justify-between gap-4">
-                            <button
-                                onClick={() => deleteBooking(selectedBooking.id)}
-                                className="px-4 py-2 text-red-600 font-semibold text-sm hover:bg-red-50 rounded-lg transition-colors"
-                            >
-                                ลบการจองนี้
-                            </button>
-                            <button
-                                onClick={() => setSelectedBooking(null)}
-                                className="px-6 py-2 bg-slate-800 text-white font-semibold text-sm rounded-lg hover:bg-slate-700 transition-all shadow-md"
-                            >
-                                ปิดหน้าต่าง
-                            </button>
                         </div>
                     </div>
-                </div>
-            )}
-        </div>
+                )
+            }
+        </div >
     );
 };
 

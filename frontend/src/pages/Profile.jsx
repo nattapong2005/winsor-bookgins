@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { showAlert, showConfirm } from "../components/Alert";
 
 function Profile({ user, apiUrl }) {
     const navigate = useNavigate();
@@ -9,7 +10,6 @@ function Profile({ user, apiUrl }) {
         email: "",
         address: ""
     });
-    const [message, setMessage] = useState(null);
 
     useEffect(() => {
         if (user) {
@@ -50,7 +50,6 @@ function Profile({ user, apiUrl }) {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        setMessage(null);
         try {
             const token = localStorage.getItem('token');
             const res = await fetch(`${apiUrl}/api/users/${user.id}`, {
@@ -63,22 +62,24 @@ function Profile({ user, apiUrl }) {
             });
 
             if (res.ok) {
-                setMessage({ type: 'success', text: 'บันทึกข้อมูลเรียบร้อยแล้ว' });
+                showAlert('success', 'บันทึกข้อมูลเรียบร้อยแล้ว');
                 fetchProfile();
             } else {
                 const err = await res.json();
-                setMessage({ type: 'error', text: err.message || 'บันทึกไม่สำเร็จ' });
+                showAlert('error', err.message || 'บันทึกไม่สำเร็จ');
             }
         } catch (err) {
-            setMessage({ type: 'error', text: 'ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้' });
+            showAlert('error', 'ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้');
         }
     };
 
     const handleLogout = () => {
-        if (window.confirm("ยืนยันการออกจากระบบ?")) {
-            localStorage.clear();
-            window.location.href = "/";
-        }
+        showConfirm("ยืนยันการออกจากระบบ", "ยืนยันการออกจากระบบ?").then((result) => {
+            if (result.isConfirmed) {
+                localStorage.clear();
+                window.location.href = "/";
+            }
+        });
     };
 
     return (
@@ -122,11 +123,6 @@ function Profile({ user, apiUrl }) {
                     <div className="w-full md:w-2/3">
                         <div className="bg-white rounded-3xl p-8 shadow-xl shadow-slate-200/50 border border-slate-100 animate-fade-in-up">
                             <h3 className="text-xl font-bold text-slate-800 mb-6">แก้ไขข้อมูลส่วนตัว</h3>
-                            {message && (
-                                <div className={`mb-6 p-4 rounded-xl text-sm font-medium flex items-center gap-3 ${message.type === 'success' ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>
-                                    {message.text}
-                                </div>
-                            )}
                             <form onSubmit={handleSubmit} className="space-y-4">
                                 <div className="space-y-1.5">
                                     <label className="text-sm font-semibold text-slate-700 ml-1">ชื่อ-นามสกุล</label>
